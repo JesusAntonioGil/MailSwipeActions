@@ -9,15 +9,15 @@ import SwiftUI
 
 
 struct Action: Identifiable {
-    let id: String = UUID().uuidString
-    let symbolImage: String
-    let tint: Color
-    let background: Color
+    var id: String = UUID().uuidString
+    var symbolImage: String
+    var tint: Color
+    var background: Color
     // Properties
-    let font: Font = .title3
-    let size: CGSize = .init(width: 45, height: 45)
-    let shape: some Shape = .circle
-    let action: (inout Bool) -> ()
+    var font: Font = .title3
+    var size: CGSize = .init(width: 45, height: 45)
+    var shape: some Shape = .circle
+    var action: (inout Bool) -> ()
 }
 
 
@@ -49,8 +49,51 @@ extension View {
 fileprivate struct CustomSwipeActionModifier: ViewModifier {
     let config: ActionConfig
     let actions: [Action]
+    // View Properties
+    @State private var resetPositionTrigger: Bool = false
+    
     
     func body(content: Content) -> some View {
         content
+            .overlay {
+                Rectangle()
+                    .fill(.clear)
+                    .containerRelativeFrame(config.occupiesFullWidth ? .horizontal : .init())
+                    .overlay(alignment: .trailing) {
+                        ActionsView()
+                    }
+            }
     }
+    
+    
+    @ViewBuilder
+    func ActionsView() -> some View {
+        ZStack {
+            ForEach(actions.indices, id: \.self) { index in
+                let action = actions[index]
+                
+                GeometryReader { proxy in
+                    let size = proxy.size
+                    
+                    Button(action: { action.action(&resetPositionTrigger) }) {
+                        Image(systemName: action.symbolImage)
+                            .font(action.font)
+                            .foregroundStyle(action.tint)
+                            .frame(width: size.width, height: size.height)
+                            .background(action.background, in: action.shape)
+                    }
+                }
+                .frame(width: action.size.width, height: action.size.height)
+            }
+        }
+        .visualEffect { content, proxy in
+            content
+                .offset(x: proxy.size.width)
+        }
+    }
+}
+
+
+#Preview {
+    ContentView()
 }
