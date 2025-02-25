@@ -55,8 +55,10 @@ struct PanGesture: UIGestureRecognizerRepresentable {
             if let panGesture = gestureRecognizer as? UIPanGestureRecognizer {
                 let velocity = panGesture.velocity(in: panGesture.view)
                 
-                
+                return (abs(velocity.x) > abs(velocity.y))
             }
+            
+            return false
         }
     }
 }
